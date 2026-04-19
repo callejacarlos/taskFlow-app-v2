@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../../services/api.js'
 import { useAuth } from '../../context/AuthContext.jsx'
+import { TaskCompositeView } from '../../patterns/Composite.jsx'
 
 const TYPES = ['TASK','BUG','FEATURE','STORY']
 const PRIOS  = ['BAJA','MEDIA','ALTA','URGENTE']
@@ -54,7 +55,7 @@ export default function TaskModal({ task, boardId, projectId, defaultColumn, col
     estimatedHours: task?.estimatedHours || 0,
     notificationMethod: task?.notificationMethod || user?.preferredNotificationMethod || 'email',
   })
-  const [subtasks, setSubtasks]   = useState(task?.subtasks?.map(s => s.title) || [''])
+  const [subtasks, setSubtasks]   = useState(task?.subtasks?.map(s => ({title: s.title, completed: s.completed || false})) || [{title: '', completed: false}])
   const [loading, setLoading]     = useState(false)
   const [error, setError]         = useState('')
   const [users, setUsers]         = useState([])
@@ -67,8 +68,8 @@ export default function TaskModal({ task, boardId, projectId, defaultColumn, col
 
   const handleChange = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }))
 
-  const handleSubtaskChange = (i, val) => setSubtasks(p => p.map((s, idx) => idx === i ? val : s))
-  const addSubtask    = () => setSubtasks(p => [...p, ''])
+  const handleSubtaskChange = (i, val) => setSubtasks(p => p.map((s, idx) => idx === i ? {...s, title: val} : s))
+  const addSubtask    = () => setSubtasks(p => [...p, {title: '', completed: false}])
   const removeSubtask = i  => setSubtasks(p => p.filter((_, idx) => idx !== i))
 
   const handleSubmit = async e => {
@@ -79,7 +80,7 @@ export default function TaskModal({ task, boardId, projectId, defaultColumn, col
         boardId,
         projectId,
         assignedTo: assignedTo || null,
-        subtasks: subtasks.filter(s => s.trim()).map(title => ({ title })),
+        subtasks: subtasks.filter(s => s.title.trim()).map(({title, completed}) => ({ title, completed })),
         dueDate: form.dueDate || null,
       }
 
@@ -101,7 +102,7 @@ export default function TaskModal({ task, boardId, projectId, defaultColumn, col
 
   const meta     = TYPE_META[form.type] || TYPE_META.TASK
   const prioMeta = PRIO_META[form.priority] || PRIO_META.MEDIA
-  const doneSubtasks = subtasks.filter(s => s.trim()).length
+  const doneSubtasks = subtasks.filter(s => s.title.trim()).length
 
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -266,11 +267,28 @@ export default function TaskModal({ task, boardId, projectId, defaultColumn, col
                 <p style={{ fontSize:13, color:'var(--text-muted)', margin:'0 0 16px' }}>
                   Divide la tarea en pasos más pequeños.
                 </p>
+
+                {/* Composite view for existing subtasks */}
+                {(() => {
+                  const existingSubtasks = subtasks.filter(s => s.title.trim())
+                  return existingSubtasks.length > 0 ? (
+                    <div style={{ marginBottom: 20 }}>
+                      <TaskCompositeView
+                        task={{ subtasks: existingSubtasks }}
+                        onToggleSubtask={(index, completed) => {
+                          const subtask = existingSubtasks[index]
+                          setSubtasks(p => p.map(s => s.title === subtask.title ? { ...s, completed } : s))
+                        }}
+                      />
+                    </div>
+                  ) : null
+                })()}
+
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                   {subtasks.map((s, i) => (
                     <div key={i} style={{ display:'flex', gap:7, alignItems:'center' }}>
                       <div style={{ width:20, height:20, borderRadius:5, border:'1.5px solid var(--border)', flexShrink:0, background:'var(--bg-tertiary)' }} />
-                      <input className="tmi" value={s} onChange={e => handleSubtaskChange(i, e.target.value)}
+                      <input className="tmi" value={s.title} onChange={e => handleSubtaskChange(i, e.target.value)}
                         placeholder={`Subtarea ${i + 1}`} style={{ flex:1 }} />
                       <button type="button" onClick={() => removeSubtask(i)}
                         style={{ width:28, height:28, borderRadius:7, border:'1px solid var(--border)', background:'none', color:'var(--text-muted)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
