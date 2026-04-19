@@ -4,6 +4,7 @@ import api from '../../services/api.js'
 import { useNotifications } from '../../context/NotificationContext.jsx'
 import TaskCard  from '../tasks/TaskCard.jsx'
 import TaskModal from '../tasks/TaskModal.jsx'
+import { TaskBridgeExample } from '../../patterns/Bridge.jsx'
 
 const Ico = ({ d, s = 15 }) => (
   <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -18,6 +19,8 @@ const PLUS   = 'M12 5v14M5 12h14'
 const BOARD  = 'M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z'
 const EMPTY  = 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2'
 const FILTER = 'M22 3H2l8 9.46V19l4 2v-8.54L22 3z'
+const LIST   = 'M4 6h16M4 12h16M4 18h16'
+const CARD   = 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z'
 
 export default function BoardPage() {
   const { id } = useParams()
@@ -31,6 +34,7 @@ export default function BoardPage() {
   const [editTask, setEditTask]         = useState(null)
   const [filter, setFilter]             = useState({ priority:'', type:'', search:'' })
   const [showFilters, setShowFilters]   = useState(false)
+  const [view, setView]                 = useState('card') // Estado para vista: 'list' o 'card'
 
   const load = async () => {
     try {
@@ -235,7 +239,7 @@ const handleCloneTask = async (task) => {
               </div>
             </div>
 
-            {/* Right: filters + button */}
+            {/* Right: filters + view toggle + button */}
             <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
               <button className={`filter-btn${hasFilters ? ' active' : ''}`} onClick={() => setShowFilters(v => !v)}>
                 <Ico d={FILTER} s={13} />
@@ -244,6 +248,33 @@ const handleCloneTask = async (task) => {
                   <span style={{ width:6, height:6, borderRadius:'50%', background:'var(--accent)', display:'inline-block' }} />
                 )}
               </button>
+              {/* Toggle de vista */}
+              <div style={{ display:'flex', borderRadius:8, border:'1px solid var(--border)', overflow:'hidden', background:'var(--bg-primary)' }}>
+                <button
+                  onClick={() => setView('list')}
+                  style={{
+                    padding:'8px 10px', display:'flex', alignItems:'center', gap:6,
+                    background: view === 'list' ? 'var(--accent)' : 'var(--bg-primary)',
+                    color: view === 'list' ? '#fff' : 'var(--text-muted)', border:'none', cursor:'pointer', fontSize:12,
+                    minWidth: 72,
+                  }}
+                >
+                  <Ico d={LIST} s={14} />
+                  Lista
+                </button>
+                <button
+                  onClick={() => setView('card')}
+                  style={{
+                    padding:'8px 10px', display:'flex', alignItems:'center', gap:6,
+                    background: view === 'card' ? 'var(--accent)' : 'var(--bg-primary)',
+                    color: view === 'card' ? '#fff' : 'var(--text-muted)', border:'none', cursor:'pointer', fontSize:12,
+                    minWidth: 88,
+                  }}
+                >
+                  <Ico d={CARD} s={14} />
+                  Tarjeta
+                </button>
+              </div>
               <button className="new-task-btn" onClick={() => { setActiveColumn(board.columns[0]?.name); setShowNewTask(true) }}>
                 <Ico d={PLUS} s={13} /> Nueva tarea
               </button>
@@ -320,9 +351,10 @@ const handleCloneTask = async (task) => {
                     </div>
                   ) : (
                     colTasks.map(task => (
-                      <TaskCard
+                      <TaskBridgeExample
                         key={task._id}
                         task={task}
+                        view={view}
                         columns={board.columns}
                         onMove={handleTaskMoved}
                         onDelete={handleTaskDeleted}
