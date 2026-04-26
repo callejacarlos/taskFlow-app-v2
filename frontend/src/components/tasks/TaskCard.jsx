@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { deleteTask } from '../../services/TaskFacade.js'
+import { deleteTask } from '../../patterns/TaskProxy.js'
 import { getTaskMeta } from '../../patterns/Flyweight.js'
 
 // Drag Handle Icon
@@ -457,7 +457,6 @@ export default function TaskCard({ task, columns, onMove, onDelete, onClone, onC
           justifyContent:'space-between', 
           fontSize:12, 
           color:'var(--text-muted)',
-          paddingTop: subtaskTotal > 0 ? 0 : 4,
           borderTop: subtaskTotal > 0 ? 'none' : '1px solid var(--border)',
           marginTop: subtaskTotal > 0 ? 0 : 10,
           paddingTop: subtaskTotal > 0 ? 0 : 10,

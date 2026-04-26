@@ -5,7 +5,7 @@ import { useNotifications } from '../../context/NotificationContext.jsx'
 import TaskCard  from '../tasks/TaskCard.jsx'
 import TaskModal from '../tasks/TaskModal.jsx'
 import { TaskBridgeExample } from '../../patterns/Bridge.jsx'
-import { createTask, updateTask } from '../../services/TaskFacade.js'
+import { createTask, updateTask } from '../../patterns/TaskProxy.js'
 import { applyTaskDecorators } from '../../patterns/Decorator.jsx'
 
 const Ico = ({ d, s = 15 }) => (

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import api from '../../services/api.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { TaskCompositeView } from '../../patterns/Composite.jsx'
-import { createTask, updateTask } from '../../services/TaskFacade.js'
+import { createTask, updateTask } from '../../patterns/TaskProxy.js'
 
 const TYPES = ['TASK','BUG','FEATURE','STORY']
 const PRIOS  = ['BAJA','MEDIA','ALTA','URGENTE']
