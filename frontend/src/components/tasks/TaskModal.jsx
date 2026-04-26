@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import api from '../../services/api.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { TaskCompositeView } from '../../patterns/Composite.jsx'
+import { createTask, updateTask } from '../../services/TaskFacade.js'
 
 const TYPES = ['TASK','BUG','FEATURE','STORY']
 const PRIOS  = ['BAJA','MEDIA','ALTA','URGENTE']
@@ -89,14 +90,17 @@ export default function TaskModal({ task, boardId, projectId, defaultColumn, col
       }
 
       let response
-      if (isEdit) {
-        response = await api.put(`/tasks/${task._id}`, payload)
-      } else {
-        response = await api.post('/tasks', payload)
+      const result = isEdit
+        ? await updateTask(task._id, payload)
+        : await createTask(payload)
+
+      if (!result.success) {
+        throw new Error(result.error)
       }
-      onSaved(response.data)
+
+      onSaved(result.data)
     } catch(err) {
-      setError(err.response?.data?.message || 'Error al guardar la tarea')
+      setError(err.message || err.response?.data?.message || 'Error al guardar la tarea')
     } finally { setLoading(false) }
   }
 

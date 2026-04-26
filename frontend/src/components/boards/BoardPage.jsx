@@ -5,6 +5,8 @@ import { useNotifications } from '../../context/NotificationContext.jsx'
 import TaskCard  from '../tasks/TaskCard.jsx'
 import TaskModal from '../tasks/TaskModal.jsx'
 import { TaskBridgeExample } from '../../patterns/Bridge.jsx'
+import { createTask, updateTask } from '../../services/TaskFacade.js'
+import { applyTaskDecorators } from '../../patterns/Decorator.jsx'
 
 const Ico = ({ d, s = 15 }) => (
   <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -82,7 +84,12 @@ export default function BoardPage() {
   if (fromCol === toCol) return
 
   try {
-    await api.put(`/tasks/${taskId}`, { column: toCol })
+    const result = await updateTask(taskId, { column: toCol })
+
+    if (!result.success) {
+      console.error(result.error)
+      return
+    }
 
     setTasksByColumn(prev => {
       const from = prev[fromCol]?.filter(t => t._id !== taskId) || []
@@ -124,20 +131,20 @@ const handleCloneTask = async (task) => {
 
     console.log("ENVIANDO:", clonedTask)
 
-    const { data } = await api.post('/tasks', clonedTask)
-    setShowNewTask(false)
-    await load()
-    alert(`✅ ${data.message || 'Tarea clonada'}`)
-  } catch (e) {
-    console.error("ERROR COMPLETO:", e.response?.data || e)
-    alert(e.response?.data?.message || 'Error al clonar')
+      const result = await createTask(clonedTask)
+          setShowNewTask(false)
+      await load()
+      alert(`✅ ${result.data.message || 'Tarea clonada'}`)
+    } catch (e) {
+      console.error("ERROR COMPLETO:", e.response?.data || e)
+      alert(e.response?.data?.message || e.message || 'Error al clonar')
+    }
   }
-}
 
   const getFilteredTasks = (tasks) => tasks?.filter(t => {
     if (filter.priority && t.priority !== filter.priority) return false
-    if (filter.type     && t.type     !== filter.type)     return false
-    if (filter.search   && !t.title.toLowerCase().includes(filter.search.toLowerCase())) return false
+    if (filter.type && t.type !== filter.type) return false
+    if (filter.search && !t.title.toLowerCase().includes(filter.search.toLowerCase())) return false
     return true
   }) || []
 
@@ -350,18 +357,21 @@ const handleCloneTask = async (task) => {
                       <span style={{ fontSize:12 }}>Sin tareas</span>
                     </div>
                   ) : (
-                    colTasks.map(task => (
-                      <TaskBridgeExample
-                        key={task._id}
-                        task={task}
-                        view={view}
-                        columns={board.columns}
-                        onMove={handleTaskMoved}
-                        onDelete={handleTaskDeleted}
-                        onClone={handleCloneTask}
-                        onClick={() => setEditTask(task)}
-                      />
-                    ))
+                    colTasks.map(task => {
+                      const DecoratedComponent = applyTaskDecorators(task, TaskBridgeExample)
+                      return (
+                        <DecoratedComponent
+                          key={task._id}
+                          task={task}
+                          view={view}
+                          columns={board.columns}
+                          onMove={handleTaskMoved}
+                          onDelete={handleTaskDeleted}
+                          onClone={handleCloneTask}
+                          onClick={() => setEditTask(task)}
+                        />
+                      )
+                    })
                   )}
                 </div>
 

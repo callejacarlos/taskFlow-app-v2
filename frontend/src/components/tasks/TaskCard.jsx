@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import api from '../../services/api.js'
+import { deleteTask } from '../../services/TaskFacade.js'
+import { getTaskMeta } from '../../patterns/Flyweight.js'
 
 // Drag Handle Icon
 const DragIcon = () => (
@@ -8,13 +9,6 @@ const DragIcon = () => (
     <circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>
   </svg>
 )
-
-const PRIORITY_COLOR = {
-  URGENTE: { bg:'#FEE2E2', color:'#991B1B', dot:'#EF4444', gradient:'linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%)' },
-  ALTA:    { bg:'#FFEDD5', color:'#9A3412', dot:'#F97316', gradient:'linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%)' },
-  MEDIA:   { bg:'#FEF3C7', color:'#92400E', dot:'#F59E0B', gradient:'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)' },
-  BAJA:    { bg:'#DBEAFE', color:'#1E40AF', dot:'#3B82F6', gradient:'linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%)' },
-}
 
 const TYPE_COLOR = {
   TASK:    '#3B82F6',
@@ -116,7 +110,7 @@ export default function TaskCard({ task, columns, onMove, onDelete, onClone, onC
     e.currentTarget.style.opacity = '1'
   }
 
-  const pStyle = PRIORITY_COLOR[task.priority] || PRIORITY_COLOR.MEDIA
+  const pStyle = getTaskMeta(task.priority)
 
   const subtaskDone  = task.subtasks?.filter(s => s.completed).length || 0
   const subtaskTotal = task.subtasks?.length || 0
@@ -129,10 +123,15 @@ export default function TaskCard({ task, columns, onMove, onDelete, onClone, onC
     if (!confirm('¿Eliminar esta tarea?')) return
     setDeleting(true)
     try {
-      await api.delete(`/tasks/${task._id}`)
-      onDelete(task._id, task.column)
-    } catch(e) { console.error(e) }
-    finally { setDeleting(false) }
+      const result = await deleteTask(task._id)
+      if (result.success) {
+        onDelete(task._id, task.column)
+      } else {
+        console.error(result.error)
+      }
+    } catch(e) {
+      console.error(e)
+    } finally { setDeleting(false) }
   }
 
   return (
