@@ -13,11 +13,24 @@ class TaskProxy {
       throw new Error(`Payload requerido para ${operation}`)
     }
 
-    if (operation === 'create' || operation === 'update') {
+    // CREATE → title obligatorio
+    if (operation === 'create') {
       if (!payload.title || payload.title.trim().length === 0) {
         throw new Error('El título de la tarea es obligatorio')
       }
+    }
 
+    // UPDATE → solo validar title si viene en el payload
+    if (operation === 'update') {
+      if ('title' in payload) {
+        if (!payload.title || payload.title.trim().length === 0) {
+          throw new Error('El título de la tarea es obligatorio')
+        }
+      }
+    }
+
+    // Validaciones generales (para create y update)
+    if (operation === 'create' || operation === 'update') {
       if (payload.title && payload.title.length > 200) {
         throw new Error('El título no puede exceder 200 caracteres')
       }
@@ -27,10 +40,9 @@ class TaskProxy {
       }
     }
 
-    if (operation === 'update' || operation === 'delete') {
-      if (!payload.taskId && !payload) {
-        throw new Error('ID de tarea requerido')
-      }
+    // Validar ID correctamente
+    if ((operation === 'update' || operation === 'delete') && !payload.taskId) {
+      throw new Error('ID de tarea requerido')
     }
   }
 
