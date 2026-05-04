@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
 
-const ROLES = ['DEVELOPER','MANAGER','ADMIN']
+const ROLES = ['DEVELOPER','PROJECT MANAGER','ADMIN']
 const NOTIFICATION_METHODS = [
   { value: 'email', label: 'Email' },
   { value: 'telegram', label: 'Telegram' },
