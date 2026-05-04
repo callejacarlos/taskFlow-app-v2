@@ -73,7 +73,7 @@ export default function ProfilePage() {
             <label>Rol</label>
             <select className="select" name="role" value={form.role} onChange={handleChange}>
               <option value="DEVELOPER">DEVELOPER</option>
-              <option value="MANAGER">MANAGER</option>
+              <option value="MANAGER">PROJECT MANAGER</option>
               <option value="ADMIN">ADMIN</option>
             </select>
           </div>
