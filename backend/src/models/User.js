@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['ADMIN', 'DEVELOPER', 'DESIGNER', 'MANAGER', 'TESTER'],
+    enum: ['ADMIN', 'DEVELOPER', 'PROJECT_MANAGER'],
     default: 'DEVELOPER',
   },
   preferredNotificationMethod: {
