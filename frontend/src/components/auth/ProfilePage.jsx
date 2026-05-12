@@ -54,7 +54,7 @@ export default function ProfilePage() {
   return (
     <div style={{ padding: 24, maxWidth: 680, margin: '0 auto' }}>
       <h1 style={{ marginBottom: 12, fontSize: 28, color: 'var(--text-primary)' }}>Perfil</h1>
-      <p style={{ color:'var(--text-secondary)', marginBottom: 24 }}>Configura tu método de notificación favorito para recibir alertas de tareas.</p>
+      <p style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>Configura tu método de notificación favorito para recibir alertas de tareas.</p>
 
       <div className="card" style={{ padding: 28 }}>
         <form onSubmit={handleSubmit}>
@@ -71,10 +71,25 @@ export default function ProfilePage() {
 
           <div className="form-group">
             <label>Rol</label>
-            <select className="select" name="role" value={form.role} onChange={handleChange}>
-              <option value="DEVELOPER">DEVELOPER</option>
-              <option value="PROJECT_MANAGER">PROJECT_MANAGER</option>
-              <option value="ADMIN">ADMIN</option>
+
+            <select
+              className="select"
+              name="role"
+              value={form.role}
+              onChange={handleChange}
+              disabled={form.role === "DEVELOPER"}
+            >
+              <option value="DEVELOPER" disabled={form.role === "PROJECT_MANAGER"}>
+                DEVELOPER
+              </option>
+
+              <option value="PROJECT_MANAGER">
+                PROJECT_MANAGER
+              </option>
+
+              <option value="ADMIN" disabled={form.role === "PROJECT_MANAGER"}>
+                ADMIN
+              </option>
             </select>
           </div>
 
@@ -103,16 +118,16 @@ export default function ProfilePage() {
                 placeholder="123456789"
                 required
               />
-              <small style={{ color:'var(--text-secondary)', marginTop:4, display:'block' }}>
+              <small style={{ color: 'var(--text-secondary)', marginTop: 4, display: 'block' }}>
                 Si escoges Telegram, ingresa tu ID de usuario para recibir las notificaciones.
               </small>
             </div>
           )}
 
-          {message && <p className="success-msg" style={{ marginBottom:12 }}>{message}</p>}
-          {error && <p className="error-msg" style={{ marginBottom:12 }}>{error}</p>}
+          {message && <p className="success-msg" style={{ marginBottom: 12 }}>{message}</p>}
+          {error && <p className="error-msg" style={{ marginBottom: 12 }}>{error}</p>}
 
-          <button className="btn btn-primary" type="submit" disabled={loading} style={{ width:'100%', justifyContent:'center', padding:'10px' }}>
+          <button className="btn btn-primary" type="submit" disabled={loading} style={{ width: '100%', justifyContent: 'center', padding: '10px' }}>
             {loading ? 'Guardando...' : 'Guardar cambios'}
           </button>
         </form>
