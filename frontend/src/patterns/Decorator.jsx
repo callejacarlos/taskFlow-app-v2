@@ -1,6 +1,8 @@
 import React from 'react'
 
-// Helper function to check if a task is overdue
+/**
+ * UTILITY: Check if a task is overdue
+ */
 const isOverdue = (dueDate) => {
   if (!dueDate) return false
   const today = new Date()
@@ -10,121 +12,193 @@ const isOverdue = (dueDate) => {
   return due < today
 }
 
-// Base Task Component (wraps TaskCard)
-export const BaseTask = (WrappedComponent) => (props) => {
-  return <WrappedComponent {...props} />
+/**
+ * INTERFACE: TaskCardComponent
+ * Matches the UML diagram. Defines the render method.
+ */
+class TaskCardComponent {
+  render() {
+    throw new Error("Method 'render()' must be implemented.")
+  }
 }
 
-// Abstract Decorator (Higher-Order Component)
-export const TaskDecorator = (WrappedComponent) => (props) => {
-  return <WrappedComponent {...props} />
-}
-
-// Priority Decorator: Highlights urgent tasks
-export const PriorityDecorator = (WrappedComponent) => (props) => {
-  const { task } = props
-  const isUrgent = task.priority === 'URGENTE'
-
-  if (!isUrgent) {
-    return <WrappedComponent {...props} />
+/**
+ * CONCRETE COMPONENT: BaseTaskCard
+ * The basic implementation of the task card.
+ */
+class BaseTaskCard extends TaskCardComponent {
+  constructor(BaseComponent, props) {
+    super()
+    this.BaseComponent = BaseComponent
+    this.props = props
   }
 
-  return (
-    <div
-      style={{
-        position: 'relative',
-        border: '2px solid #EF4444',
-        borderRadius: '8px',
-        boxShadow: '0 0 10px rgba(239, 68, 68, 0.3)',
-        background: 'linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%)',
-      }}
-    >
-      {/* Urgent badge */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '-8px',
-          right: '-8px',
-          background: '#EF4444',
-          color: 'white',
-          borderRadius: '50%',
-          width: '20px',
-          height: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '10px',
-          fontWeight: 'bold',
-          zIndex: 10,
-        }}
-      >
-        !
-      </div>
-      <WrappedComponent {...props} />
-    </div>
-  )
+  render() {
+    const { BaseComponent, props } = this
+    return <BaseComponent {...props} />
+  }
 }
 
-// Overdue Decorator: Highlights overdue tasks
-export const OverdueDecorator = (WrappedComponent) => (props) => {
-  const { task } = props
-  const overdue = isOverdue(task.dueDate)
-
-  if (!overdue) {
-    return <WrappedComponent {...props} />
+/**
+ * ABSTRACT DECORATOR: TaskDecoratorBase
+ * Implements the same interface and holds a reference to a component.
+ */
+class TaskDecoratorBase extends TaskCardComponent {
+  constructor(component) {
+    super()
+    this.component = component
   }
 
-  return (
-    <div
-      style={{
-        position: 'relative',
-        border: '2px solid #F59E0B',
-        borderRadius: '8px',
-        boxShadow: '0 0 10px rgba(245, 158, 11, 0.3)',
-        background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
-      }}
-    >
-      {/* Overdue badge */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '-8px',
-          left: '-8px',
-          background: '#F59E0B',
-          color: 'white',
-          borderRadius: '4px',
-          padding: '2px 6px',
-          fontSize: '10px',
-          fontWeight: 'bold',
-          zIndex: 10,
-        }}
-      >
-        VENCIDA
-      </div>
-      <WrappedComponent {...props} />
-    </div>
-  )
+  render() {
+    // Default behavior: just delegate to the wrapped component
+    return this.component.render()
+  }
 }
 
-// Function to apply decorators dynamically
+/**
+ * CONCRETE DECORATOR: PriorityDecorator
+ * Adds visual emphasis for urgent tasks.
+ */
+export class PriorityDecorator extends TaskDecoratorBase {
+  render() {
+    const { task } = this.component.props
+    const isUrgent = task.priority === 'URGENTE'
+
+    if (!isUrgent) {
+      return super.render()
+    }
+
+    return (
+      <div
+        style={{
+          position: 'relative',
+          borderRadius: '12px',
+          padding: '2px',
+          background: 'linear-gradient(135deg, #FF4D4D 0%, #F97316 100%)',
+          boxShadow: '0 4px 15px rgba(239, 68, 68, 0.25)',
+          animation: 'pulse-border 2s infinite ease-in-out',
+        }}
+      >
+        <style>{`
+          @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+          }
+        `}</style>
+        
+        {/* Urgent Badge */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-10px',
+            right: '10px',
+            background: '#EF4444',
+            color: 'white',
+            borderRadius: '20px',
+            padding: '2px 10px',
+            fontSize: '9px',
+            fontWeight: '800',
+            letterSpacing: '0.5px',
+            zIndex: 10,
+            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            border: '1.5px solid white'
+          }}
+        >
+          <span style={{ fontSize: '11px' }}>⚡</span> URGENTE
+        </div>
+        
+        <div style={{ borderRadius: '10px', overflow: 'hidden', background: 'var(--bg-primary)' }}>
+          {super.render()}
+        </div>
+      </div>
+    )
+  }
+}
+
+/**
+ * CONCRETE DECORATOR: OverdueDecorator
+ * Adds visual emphasis for overdue tasks.
+ */
+export class OverdueDecorator extends TaskDecoratorBase {
+  render() {
+    const { task } = this.component.props
+    const overdue = isOverdue(task.dueDate)
+
+    if (!overdue) {
+      return super.render()
+    }
+
+    return (
+      <div
+        style={{
+          position: 'relative',
+          borderRadius: '12px',
+          border: '2px dashed #F59E0B',
+          background: 'rgba(245, 158, 11, 0.03)',
+        }}
+      >
+        {/* Overdue Label */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '-8px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#F59E0B',
+            color: 'white',
+            borderRadius: '4px',
+            padding: '1px 8px',
+            fontSize: '9px',
+            fontWeight: 'bold',
+            zIndex: 10,
+            boxShadow: '0 2px 4px rgba(245, 158, 11, 0.2)',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          ⏰ VENCIDA
+        </div>
+        {super.render()}
+      </div>
+    )
+  }
+}
+
+/**
+ * FACTORY FUNCTION: applyTaskDecorators
+ * Dynamically constructs the decorator chain.
+ * This is the entry point used by other components.
+ */
 export const applyTaskDecorators = (task, BaseComponent) => {
-  let DecoratedComponent = BaseComponent
+  // Returns a functional component to be used in React
+  return (props) => {
+    // 1. Start with the base component
+    let component = new BaseTaskCard(BaseComponent, props)
 
-  // Apply Priority Decorator if urgent
-  if (task.priority === 'URGENTE') {
-    DecoratedComponent = PriorityDecorator(DecoratedComponent)
+    // 2. Wrap with PriorityDecorator if needed
+    if (task.priority === 'URGENTE') {
+      component = new PriorityDecorator(component)
+    }
+
+    // 3. Wrap with OverdueDecorator if needed
+    if (isOverdue(task.dueDate)) {
+      component = new OverdueDecorator(component)
+    }
+
+    // 4. Execute the render chain
+    return component.render()
   }
-
-  // Apply Overdue Decorator if overdue
-  if (isOverdue(task.dueDate)) {
-    DecoratedComponent = OverdueDecorator(DecoratedComponent)
-  }
-
-  return DecoratedComponent
 }
 
-// Example usage
+/**
+ * EXAMPLE COMPONENT: DecoratedTaskExample
+ * Demonstrates usage of the decorator pattern.
+ */
 export const DecoratedTaskExample = ({ task, BaseComponent }) => {
   const DecoratedComponent = applyTaskDecorators(task, BaseComponent)
   return <DecoratedComponent task={task} />
 }
+
