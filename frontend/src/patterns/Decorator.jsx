@@ -49,6 +49,11 @@ class TaskDecoratorBase extends TaskCardComponent {
     this.component = component
   }
 
+  // FIX: Delegar props al componente envuelto
+  get props() {
+    return this.component.props
+  }
+
   render() {
     // Default behavior: just delegate to the wrapped component
     return this.component.render()
@@ -61,7 +66,14 @@ class TaskDecoratorBase extends TaskCardComponent {
  */
 export class PriorityDecorator extends TaskDecoratorBase {
   render() {
-    const { task } = this.component.props
+    // FIX: usar this.props en lugar de this.component.props
+    const { task } = this.props
+
+    // Protección extra
+    if (!task) {
+      return super.render()
+    }
+
     const isUrgent = task.priority === 'URGENTE'
 
     if (!isUrgent) {
@@ -86,7 +98,7 @@ export class PriorityDecorator extends TaskDecoratorBase {
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
           }
         `}</style>
-        
+
         {/* Urgent Badge */}
         <div
           style={{
@@ -110,7 +122,7 @@ export class PriorityDecorator extends TaskDecoratorBase {
         >
           <span style={{ fontSize: '11px' }}>⚡</span> URGENTE
         </div>
-        
+
         <div style={{ borderRadius: '10px', overflow: 'hidden', background: 'var(--bg-primary)' }}>
           {super.render()}
         </div>
@@ -125,7 +137,14 @@ export class PriorityDecorator extends TaskDecoratorBase {
  */
 export class OverdueDecorator extends TaskDecoratorBase {
   render() {
-    const { task } = this.component.props
+    // FIX: usar this.props en lugar de this.component.props
+    const { task } = this.props
+
+    // Protección extra
+    if (!task) {
+      return super.render()
+    }
+
     const overdue = isOverdue(task.dueDate)
 
     if (!overdue) {
@@ -161,6 +180,7 @@ export class OverdueDecorator extends TaskDecoratorBase {
         >
           ⏰ VENCIDA
         </div>
+
         {super.render()}
       </div>
     )
@@ -179,12 +199,12 @@ export const applyTaskDecorators = (task, BaseComponent) => {
     let component = new BaseTaskCard(BaseComponent, props)
 
     // 2. Wrap with PriorityDecorator if needed
-    if (task.priority === 'URGENTE') {
+    if (task?.priority === 'URGENTE') {
       component = new PriorityDecorator(component)
     }
 
     // 3. Wrap with OverdueDecorator if needed
-    if (isOverdue(task.dueDate)) {
+    if (isOverdue(task?.dueDate)) {
       component = new OverdueDecorator(component)
     }
 
@@ -201,4 +221,3 @@ export const DecoratedTaskExample = ({ task, BaseComponent }) => {
   const DecoratedComponent = applyTaskDecorators(task, BaseComponent)
   return <DecoratedComponent task={task} />
 }
-
